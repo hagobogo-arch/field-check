@@ -1,0 +1,28 @@
+<!doctype html><html lang='ko'><head><meta charset='utf-8'><meta name='viewport' content='width=device-width,initial-scale=1,viewport-fit=cover'><meta name='theme-color' content='#0b3a68'><title>현장체크</title>
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="apple-touch-icon" href="./icon-192.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,'Noto Sans KR',sans-serif;background:#f4f7fa;color:#17202a}.app{max-width:520px;margin:auto;min-height:100vh;padding:18px}.top{background:#0b3a68;color:#fff;padding:22px;border-radius:22px;margin-bottom:16px}.top h1{margin:0;font-size:30px}.top p{margin:8px 0 0;opacity:.9}.card{background:#fff;border-radius:22px;padding:20px;box-shadow:0 4px 18px #0001;margin-bottom:14px}.choices{display:grid;grid-template-columns:1fr 1fr;gap:12px}.big{border:0;border-radius:18px;padding:24px 10px;font-size:24px;font-weight:800;cursor:pointer}.villa{background:#e4f0ff;color:#0756a0}.house{background:#e5f6e9;color:#16733a}.stepno{font-size:18px;color:#68737d;font-weight:700}.name{font-size:38px;font-weight:900;margin:12px 0 4px}.detail{font-size:20px;color:#5b6570;min-height:30px}.progress{height:12px;background:#e8edf2;border-radius:99px;overflow:hidden;margin:18px 0}.bar{height:100%;background:#1c77c3}.actions{display:grid;gap:10px}.done{background:#147a3e;color:white}.skip{background:#eceff2;color:#333}.back{background:white;color:#555;border:2px solid #d8dde3}.actions button{border:0;border-radius:18px;padding:20px;font-size:21px;font-weight:800}.back{border:2px solid #d8dde3!important}.status{font-size:17px;text-align:center;color:#65717c;margin-top:10px}.finish{background:#eaf8ee;border:3px solid #28a45a;text-align:center}.finish h2{font-size:30px;margin:5px}.warn{background:#fff0f0;border:3px solid #e05252}.list{margin:12px 0;text-align:left}.row{padding:9px 4px;border-bottom:1px solid #eee}.reset{width:100%;background:#0b3a68;color:white;border:0;border-radius:18px;padding:18px;font-size:20px;font-weight:800;margin-top:12px}.small{font-size:14px;color:#77818b;text-align:center;margin-top:16px}
+</style></head><body><main class='app'><section class='top'><h1>현장체크</h1><p>지금 할 것 하나만 보고, 촬영 후 한 번 누르기.</p></section><div id='root'></div></main><script>
+const flows={
+ villa:[['건물외관',''],['주차장',''],['기타옵션','무인택배함 등'],['엘리베이터',''],['호실',''],['현관','펜트리'],['거실','야외테라스 등'],['주방','보조주방, 테라스 등'],['공용욕실',''],['안방','욕실, 드레스룸 등'],['작은방1','붙박이장 등'],['작은방2','베란다'],['거실뷰',''],['나침반','방향체크']],
+ house:[['건물외관',''],['주차장','창고 등'],['기타','사우나, 영화감상실 등'],['마당',''],['출입문',''],['현관','펜트리 등'],['거실','야외테라스 등'],['주방','보조주방, 세탁실 등'],['공용욕실',''],['안방','욕실, 드레스룸 등'],['작은방','붙박이장, 드레스룸 등'],['계단',''],['2F 복도',''],['2F 거실','야외테라스 등'],['2F 주방','세탁실 등'],['2F 공용욕실',''],['2F 방1','욕실, 드레스룸 등'],['2F 방2','야외테라스 등'],['2F 계단',''],['3F 다락방',''],['3F 욕실',''],['3F 야외테라스',''],['일괄소등과 문단속',''],['거실뷰',''],['나침반','방향체크']]
+};
+let s=JSON.parse(localStorage.getItem('fieldcheck')||'null')||{type:null,i:0,marks:[]};
+const root=document.getElementById('root');function save(){localStorage.setItem('fieldcheck',JSON.stringify(s))}
+function choose(t){s={type:t,i:0,marks:[]};save();render()}function mark(v){s.marks[s.i]=v;s.i++;save();render()}function back(){if(s.i>0){s.i--;s.marks=s.marks.slice(0,s.i);save();render()}}function reset(){if(confirm('현재 체크를 처음부터 다시 시작할까요?')){s={type:null,i:0,marks:[]};save();render()}}
+function render(){if(!s.type){root.innerHTML=`<section class='card'><h2>오늘 촬영 유형</h2><div class='choices'><button class='big villa' onclick="choose('villa')">빌라</button><button class='big house' onclick="choose('house')">주택</button></div><p class='small'>현장 구조가 달라도 큰 순서만 따라갑니다.</p></section>`;return}
+ const a=flows[s.type], label=s.type==='villa'?'빌라':'주택'; if(s.i>=a.length){let skipped=s.marks.map((m,i)=>m==='skip'?i:-1).filter(i=>i>=0);root.innerHTML=`<section class='card ${skipped.length?'warn':'finish'}'><h2>${skipped.length?'확인 필요':'촬영 순서 완료'}</h2><p><b>${a.length}/${a.length}</b> 단계 확인</p>${skipped.length?`<p>‘해당 없음’으로 넘긴 항목입니다.</p><div class='list'>${skipped.map(i=>`<div class='row'>－ ${a[i][0]} ${a[i][1]?`(${a[i][1]})`:''}</div>`).join('')}</div>`:`<p>처음부터 끝까지 모두 확인했습니다.</p>`}<button class='reset' onclick='reset()'>새 현장 시작</button></section>`;return}
+ let [n,d]=a[s.i], pct=Math.round(s.i/a.length*100);root.innerHTML=`<section class='card'><div class='stepno'>${label} · ${s.i+1} / ${a.length}</div><div class='progress'><div class='bar' style='width:${pct}%'></div></div><div class='name'>${n}</div><div class='detail'>${d}</div><div class='actions'><button class='done' onclick="mark('done')">✓ 촬영 완료 → 다음</button><button class='skip' onclick="mark('skip')">－ 해당 없음 → 다음</button>${s.i?`<button class='back' onclick='back()'>← 이전 단계</button>`:''}</div><div class='status'>화면을 닫아도 현재 단계가 저장됩니다.</div></section><button class='reset' onclick='reset()'>현장 체크 취소 / 처음으로</button>`}
+render();</script>
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js').catch(() => {});
+  });
+}
+</script>
+</body></html>
